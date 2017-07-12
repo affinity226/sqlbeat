@@ -11,11 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/adibendahan/sqlbeat/config"
+	"github.com/affinity226/sqlbeat/config"
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/cfgfile"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/publisher"
 
 	// sql go drivers
 	_ "github.com/denisenkom/go-mssqldb"
@@ -42,6 +43,7 @@ type Sqlbeat struct {
 
 	oldValues    common.MapStr
 	oldValuesAge common.MapStr
+	client       publisher.Client
 }
 
 var (
@@ -53,7 +55,7 @@ const (
 	// you should compile your sqlbeat with a unique secret and hide it (don't leave it in the code after compiled)
 	// you can encrypt your password with github.com/adibendahan/sqlbeat-password-encrypter just update your secret
 	// (and commonIV if you choose to change it) and compile.
-	secret = "github.com/adibendahan/mysqlbeat"
+	secret = "github.com/affinity226/sqlbeat"
 
 	// supported DB types
 	dbtMySQL = "mysql"
@@ -86,10 +88,26 @@ const (
 )
 
 // New Creates beater
+/*
 func New() *Sqlbeat {
 	return &Sqlbeat{
 		done: make(chan struct{}),
 	}
+}
+*/
+func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
+	bt := &Sqlbeat{
+		done: make(chan struct{}),
+	}
+	err := cfgfile.Read(&bt.beatConfig, "")
+	if err != nil {
+		return nil, fmt.Errorf("Error reading config file: %v", err)
+	}
+	err = bt.Setup(b)
+	if err != nil {
+		return nil, fmt.Errorf("Error setting config file: %v", err)
+	}
+	return bt, err
 }
 
 ///*** Beater interface methods ***///
@@ -228,6 +246,7 @@ func (bt *Sqlbeat) Setup(b *beat.Beat) error {
 // Run is a functions that runs the beat
 func (bt *Sqlbeat) Run(b *beat.Beat) error {
 	logp.Info("sqlbeat is running! Hit CTRL-C to stop it.")
+	bt.client = b.Publisher.Connect()
 
 	ticker := time.NewTicker(bt.period)
 	for {
@@ -251,6 +270,7 @@ func (bt *Sqlbeat) Cleanup(b *beat.Beat) error {
 
 // Stop is a function that runs once the beat is stopped
 func (bt *Sqlbeat) Stop() {
+	bt.client.Close()
 	close(bt.done)
 }
 
@@ -318,7 +338,8 @@ LoopQueries:
 				if err != nil {
 					logp.Err("Query #%v error generating event from rows: %v", index, err)
 				} else if event != nil {
-					b.Events.PublishEvent(event)
+					//b.Events.PublishEvent(event)
+					bt.client.PublishEvent(event)
 					logp.Info("%v event sent", bt.queryTypes[index])
 				}
 				// breaking after the first row
@@ -332,7 +353,8 @@ LoopQueries:
 					logp.Err("Query #%v error generating event from rows: %v", index, err)
 					break LoopRows
 				} else if event != nil {
-					b.Events.PublishEvent(event)
+					//b.Events.PublishEvent(event)
+					bt.client.PublishEvent(event)
 					logp.Info("%v event sent", bt.queryTypes[index])
 				}
 
@@ -355,7 +377,8 @@ LoopQueries:
 
 		// If the two-columns event has data, publish it
 		if bt.queryTypes[index] == queryTypeTwoColumns && len(twoColumnEvent) > 2 {
-			b.Events.PublishEvent(twoColumnEvent)
+			//b.Events.PublishEvent(twoColumnEvent)
+			bt.client.PublishEvent(twoColumnEvent)
 			logp.Info("%v event sent", queryTypeTwoColumns)
 			twoColumnEvent = nil
 		}
