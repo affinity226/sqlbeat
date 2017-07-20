@@ -6,7 +6,7 @@ sqlbeat:
   # Defines how often an event is sent to the output
   period: 10s
 
-  # Defines the DB type you are connecting, currently supporting 'mysql' / 'mssql' / 'postgres' / 'ora'
+  # Defines the DB type you are connecting, currently supporting 'mysql' / 'mssql' / 'postgres' / 'oci8'
   #dbtype: "ora"
   dbtype: "oci8"
 

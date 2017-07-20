@@ -22,7 +22,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-oci8"
+	//_ "github.com/mattn/go-oci8"
 	//_ "gopkg.in/rana/ora.v4"
 )
 
@@ -133,11 +133,11 @@ func (bt *Sqlbeat) Setup(b *beat.Beat) error {
 
 	// Config errors handling
 	switch bt.beatConfig.Sqlbeat.DBType {
-	case dbtMSSQL, dbtMySQL, dbtPSQL, dbtOracle:
+	case dbtMSSQL, dbtMySQL, dbtPSQL /*, dbtOracle*/ :
 		break
 	default:
-		err := fmt.Errorf("Unknown DB type, supported DB types: `mssql`, `mysql`, `postgres`, `ora`")
-		//err := fmt.Errorf("Unknown DB type, supported DB types: `mssql`, `mysql`, `postgres`")
+		//err := fmt.Errorf("Unknown DB type, supported DB types: `mssql`, `mysql`, `postgres`, `ora`")
+		err := fmt.Errorf("Unknown DB type, supported DB types: `mssql`, `mysql`, `postgres`")
 		return err
 	}
 
