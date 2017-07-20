@@ -22,6 +22,8 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-oci8"
+	//_ "gopkg.in/rana/ora.v4"
 )
 
 // Sqlbeat is a struct to hold the beat config & info
@@ -58,9 +60,11 @@ const (
 	secret = "github.com/affinity226/sqlbeat"
 
 	// supported DB types
-	dbtMySQL = "mysql"
-	dbtMSSQL = "mssql"
-	dbtPSQL  = "postgres"
+	dbtMySQL  = "mysql"
+	dbtMSSQL  = "mssql"
+	dbtPSQL   = "postgres"
+	dbtOracle = "oci8"
+	//dbtOracle = "ora"
 
 	// default values
 	defaultPeriod        = "10s"
@@ -68,8 +72,8 @@ const (
 	defaultPortMySQL     = "3306"
 	defaultPortMSSQL     = "1433"
 	defaultPortPSQL      = "5432"
-	defaultUsername      = "sqlbeat_user"
-	defaultPassword      = "sqlbeat_pass"
+	defaultUsername      = "root"
+	defaultPassword      = ""
 	defaultDeltaWildcard = "__DELTA"
 
 	// query types values
@@ -129,10 +133,11 @@ func (bt *Sqlbeat) Setup(b *beat.Beat) error {
 
 	// Config errors handling
 	switch bt.beatConfig.Sqlbeat.DBType {
-	case dbtMSSQL, dbtMySQL, dbtPSQL:
+	case dbtMSSQL, dbtMySQL, dbtPSQL, dbtOracle:
 		break
 	default:
-		err := fmt.Errorf("Unknown DB type, supported DB types: `mssql`, `mysql`, `postgres`")
+		err := fmt.Errorf("Unknown DB type, supported DB types: `mssql`, `mysql`, `postgres`, `ora`")
+		//err := fmt.Errorf("Unknown DB type, supported DB types: `mssql`, `mysql`, `postgres`")
 		return err
 	}
 
@@ -293,6 +298,8 @@ func (bt *Sqlbeat) beat(b *beat.Beat) error {
 	case dbtPSQL:
 		connString = fmt.Sprintf("%v://%v:%v@%v:%v/%v?sslmode=%v",
 			dbtPSQL, bt.username, bt.password, bt.hostname, bt.port, bt.database, bt.postgresSSLMode)
+	case dbtOracle:
+		connString = fmt.Sprintf("%s/%s@%s:%s/%s", bt.username, bt.password, bt.hostname, bt.port, bt.database)
 	}
 
 	db, err := sql.Open(bt.dbType, connString)

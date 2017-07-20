@@ -6,33 +6,40 @@ sqlbeat:
   # Defines how often an event is sent to the output
   period: 10s
 
-  # Defines the DB type you are connecting, currently supporting 'mysql' / 'mssql' / 'postgres'
-  dbtype: "mysql"
+  # Defines the DB type you are connecting, currently supporting 'mysql' / 'mssql' / 'postgres' / 'oci8'
+  #dbtype: "ora"
+  dbtype: "oci8"
 
   # Defines the sql hostname that the beat will connect to
   hostname: "127.0.0.1"
+  #hostname: "172.21.104.16"
+  #hostname: "172.21.104.16"
 
   # Defines the sql port - leave commented for default ports
-  port: "3306"
+  #port: "3306"
+  port: "61022"
+  #port: "64341"
 
   # MAKE SURE THE USER ONLY HAS PERMISSIONS TO RUN THE QUERY DESIRED AND NOTHING ELSE.
   # Defines the mysql user to use
-  username: "sqlbeat_user"
+  username: "system"
 
   # Defines the mysql password to use - option #1 - plain text
-  password: "sqlbeat_pass"
+  password: "oracle"
 
   # Defines the mysql password to use - option #2 - AES encryption (see github.com/adibendahan/mysqlbeat-password-encrypter)
   #encryptedpassword: "2321f38819cf693951e88f00cd82"
   
   # Defines the database to connect, optional for all except DB type postgres
-  database: "sqlbeat"
+  database: "XE"
 
   # Defines SSL mode for postgres
   #postgressslmode: "disable"
 
   # Defines the queries that will run  - the query below is an example
-  queries: [ "select * from tbl"]
+  #queries: [ "select * from  /*asdf*/ role"]
+  queries: [ "select username from dba_users"]
+  #queries: [ "select * from user_objects"]
 
   # Defines the queries result types
   # 'single-row' will be translated as columnname:value

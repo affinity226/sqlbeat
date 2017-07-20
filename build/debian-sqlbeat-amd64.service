@@ -1,0 +1,12 @@
+[Unit]
+Description=sqlbeat
+Documentation=https://www.elastic.co/guide/en/beats/sqlbeat/current/index.html
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/share/sqlbeat/bin/sqlbeat -c /etc/sqlbeat/sqlbeat.yml -path.home /usr/share/sqlbeat -path.config /etc/sqlbeat -path.data /var/lib/sqlbeat -path.logs /var/log/sqlbeat
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
